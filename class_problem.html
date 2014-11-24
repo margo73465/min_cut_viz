@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+rect {
+  fill: none;
+  pointer-events: all;
+}
+
+.node {
+  fill: #000;
+}
+
+.cursor {
+  fill: none;
+  stroke: brown;
+  pointer-events: none;
+}
+
+.link {
+  stroke: #999;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="/min_cut_funcs.js"></script>
+<script>
+
+var width = 960,
+  	height = 720;
+
+var fill = d3.scale.category10();
+
+var nodes = [];
+var edges = [];
+
+var force = d3.layout.force()
+    .size([width, height])
+    .nodes(nodes)
+    .links(edges)
+    .linkDistance(200)
+    .charge(-150)
+    .on("tick", tick);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+
+var node = svg.selectAll(".node");
+    link = svg.selectAll(".link");
+
+function start() {
+  //link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
+  link = link.data(edges);
+  link.enter()
+    .insert("line", ".node")
+    .attr("class", "link");
+  link.exit()
+    .remove();
+
+  node = node.data(force.nodes(), function(d) { return d.id; });
+  node.enter()
+    .append("circle")
+    .attr("class", function(d) { return "node " + d.id; })
+    .attr("r", 8)
+    .call(force.drag);
+  node.exit().remove();
+
+  force.start();
+}
+
+function tick() {
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+  node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+      //.style("fill", function(d) { return fill(d.weight); });
+}
+
+
+d3.json("/karger_min_cut.json", function(error, data) {
+
+	for (var a = 0; a < data.length; a++) {
+		nodes.push( {id: data[a][0]} );
+		for (var b = 1; b < data[a].length; b++) {
+			if (+data[a][b] - 1 > +data[a][0] - 1) { // Ensures that we only add each edge one time
+				edges.push( { source: +data[a][0] - 1, target: +data[a][b] - 1 } );
+			}
+		}
+	}
+
+  console.log(edges);
+
+	start();	
+
+	// var interval = setInterval(function() { 
+
+	// 	// Randomly choose an edge
+	// 	var edge_index = Math.floor(Math.random() * edges.length);
+	// 	var edge = edges[edge_index];	
+
+ //    //svg.append()
+
+	// 	// Mash nodes together, all edges connected to second node are now connected to first
+	// 	var node_index = edge.target.index;
+	// 	edges = find_and_replace(edges, edge.target, edge.source)
+	// 	edges = remove_self_loops(edges);
+	// 	nodes.splice(node_index, 1);
+		
+	// 	console.log(nodes.slice(0));
+	// 	console.log(edges.slice(0));
+
+	// 	if (nodes.length <= 2) {
+ //      start();
+	// 		clearInterval(interval);
+	// 	} else {
+	// 		start();
+	// 	}
+
+	// }, 1000);
+
+})
+
+
+
+</script>

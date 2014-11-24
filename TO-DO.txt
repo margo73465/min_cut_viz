@@ -1,0 +1,16 @@
+
+TO-DO:
+
+Do-able:
+x figure out why last node doesn't disappear
+- figure out how to draw edges so they don't overlap
+- highlight edge to be deleted, highlight nodes to be smashed, highlight newly created node
+
+Hard:
+- add a click feature that causes collapsed nodes to spring back out
+- color nodes based on min-cut (partition into 2 groups, cluster)
+- highlight all edges that would have to be cut for a particular min cut
+
+Other:
+x generate a random graph to do min-cut algorithm on
+- go back to college notes and figure out a deterministic min-cut algorithm
