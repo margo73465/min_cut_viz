@@ -45,7 +45,7 @@ d3.json("/random_graph.json", function(error, data) {
 		nodes.push( {id: data[a][0], selected: false} );
 		for (var b = 1; b < data[a].length; b++) {
 			if (+data[a][b] > +data[a][0]) { // Ensures that we only add each edge one time
-				edges.push( { source: +data[a][0], target: +data[a][b], linknum: 1, selected: false} );
+				edges.push( { edge_id: a + b, source: +data[a][0], target: +data[a][b], linknum: 1, selected: false } );
 			}
 		}
 	}
@@ -64,6 +64,9 @@ d3.json("/random_graph.json", function(error, data) {
 		var edge = edges[edge_index];	
 
     edges[edge_index]['selected'] = true;
+    nodes[edge.target.index]['selected'] = true;
+    nodes[edge.source.index]['selected'] = true;
+    console.log(edge);
 
     svg.selectAll(".link")
       .attr("class", function(d) {
@@ -73,9 +76,6 @@ d3.json("/random_graph.json", function(error, data) {
           return "link";
         }
       });
-
-    nodes[edge.target.index]['selected'] = true;
-    nodes[edge.source.index]['selected'] = true;
 
     svg.selectAll(".node")
       .attr(function(d) {
@@ -87,10 +87,10 @@ d3.json("/random_graph.json", function(error, data) {
       });
 
     svg.selectAll(".selected")
-      .transition().duration(250)
+      // .transition().duration(250)
       .style("stroke", "red");
     svg.selectAll(".node.selected")
-      .transition().duration(250)
+      // .transition().duration(250)
       .style("fill", "red");
 
     console.log(edges);
@@ -131,8 +131,8 @@ function start() {
     .append("circle")
     .attr("class", "node")
     //.attr("class", function(d) { return "node " + d.id; })
-    .attr("r", 8);
-    //.call(force.drag);
+    .attr("r", 8)
+    .call(force.drag);
   node.exit().remove();
 
   force.start();
