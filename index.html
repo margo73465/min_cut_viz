@@ -6,221 +6,265 @@
   <script src="d3.v3.min.js" charset="utf-8" type="text/javascript"></script>
   <!-- <script src="http://d3js.org/d3.v3.min.js"></script> -->
 </head>
-<body>
+<body>  
 <script>
 
 var width = 960,
   	height = 720;
-
+      
 var fill = d3.scale.category10();
 var PI = 3.14159265359;
 
 var nodes = [];
-var edges = [];
+var links = [];
 
 var force = d3.layout.force()
     .size([width, height])
     .nodes(nodes)
-    .links(edges)
+    .links(links)
     .linkDistance(150)
     .charge(-300)
     .friction(0.1)
     .on("tick", tick);
 
+var force = d3.layout.force()
+    .charge(-120)
+    .linkDistance(200)
+    .size([width, height]);
+
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var node = svg.selectAll(".node"),
-    link = svg.selectAll("path")
-        .data(force.links())
-      .enter()
-        .append("svg:path")
-        .attr("class", "link");
+var node = svg.selectAll(".node");
+// var link = svg.selectAll(".link")
+//         .data(force.links())
+//       .enter()
+//         .append("svg:path")
+//         .attr("class", "link");
+var link = svg.selectAll(".link");
+
+d3.json("/random_graph2.json", function(error, graph) {
+
+	// for (var a = 0; a < data.length; a++) {
+	// 	nodes.push( {id: data[a][0], selected: false} );
+	// 	for (var b = 1; b < data[a].length; b++) {
+	// 		if (+data[a][b] > +data[a][0]) { // Ensures that we only add each edge one time
+	// 			edges.push( { edge_id: a + b, source: +data[a][0], target: +data[a][b], linknum: 1, selected: false } );
+	// 		}
+	// 	}
+	// }
+  // console.log(data);
+
+  // nodes = data.nodes;
+  // links = data.links;
+  console.log(graph);
+
+  force
+    .nodes(graph.nodes)
+    .links(graph.links)
+    .start();
+
+  console.log(graph.nodes);
+  console.log(graph.links);
 
 
-d3.json("/random_graph.json", function(error, data) {
+  link = svg.selectAll(".link")
+      .data(graph.links)
+    .enter().append("path")
+      .attr("class", "link")
+      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-	for (var a = 0; a < data.length; a++) {
-		nodes.push( {id: data[a][0], selected: false} );
-		for (var b = 1; b < data[a].length; b++) {
-			if (+data[a][b] > +data[a][0]) { // Ensures that we only add each edge one time
-				edges.push( { edge_id: a + b, source: +data[a][0], target: +data[a][b], linknum: 1, selected: false } );
-			}
-		}
-	}
-
-	start();
+  node = svg.selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 5)
+      .style("fill", "black")
+      .call(force.drag);
 
 
 	//var interval = setInterval(function() { 
     // sort links first
-    sort_links(edges);                
+    // sort_links(edges);                
     // add linknum to each edge
-    set_linknum(edges);
+    // set_linknum(edges);
 
-		// Randomly choose an edge
-		var edge_index = Math.floor(Math.random() * edges.length);
-		var edge = edges[edge_index];	
+		// // Randomly choose an edge
+		// var edge_index = Math.floor(Math.random() * edges.length);
+		// var edge = edges[edge_index];	
 
-    edges[edge_index]['selected'] = true;
-    nodes[edge.target.index]['selected'] = true;
-    nodes[edge.source.index]['selected'] = true;
-    console.log(edge);
+  //   edges[edge_index]['selected'] = true;
+  //   nodes[edge.target.index]['selected'] = true;
+  //   nodes[edge.source.index]['selected'] = true;
+  //   // console.log(edge);
 
-    svg.selectAll(".link")
-      .attr("class", function(d) {
-        if (d.selected == true) {
-          return "selected";
-        } else {
-          return "link";
-        }
-      });
+  //   svg.selectAll(".link")
+  //     .attr("class", function(d) {
+  //       if (d.selected == true) {
+  //         return "selected";
+  //       } else {
+  //         return "link";
+  //       }
+  //     });
 
-    svg.selectAll(".node")
-      .attr(function(d) {
-        if (d.selected === true) {
-          return "selected";
-        } else {
-          return "node";
-        }
-      });
+  //   svg.selectAll(".node")
+  //     .attr(function(d) {
+  //       if (d.selected === true) {
+  //         return "selected";
+  //       } else {
+  //         return "node";
+  //       }
+  //     });
 
-    svg.selectAll(".selected")
-      // .transition().duration(250)
-      .style("stroke", "red");
-    svg.selectAll(".node.selected")
-      // .transition().duration(250)
-      .style("fill", "red");
+  //   svg.selectAll(".selected")
+  //     // .transition().duration(250)
+  //     .style("stroke", "red");
+  //   svg.selectAll(".node.selected")
+  //     // .transition().duration(250)
+  //     .style("fill", "red");
 
-    console.log(edges);
-    console.log(nodes);
+  //   console.log(edges);
+  //   console.log(nodes);
 
-    // Mash nodes together, all edges connected to second node are now connected to first
-    var node_index = edge.target.index;
+  //   // Mash nodes together, all edges connected to second node are now connected to first
+  //   var node_index = edge.target.index;
 
-    //svg.selectAll(".node")
+  //   //svg.selectAll(".node")
 
-		edges = find_and_replace(edges, edge.target, edge.source)
-		edges = remove_self_loops(edges);
-		//nodes.splice(node_index, 1);
+		// edges = find_and_replace(edges, edge.target, edge.source)
+		// edges = remove_self_loops(edges);
+		// //nodes.splice(node_index, 1);
 
-		if (nodes.length <= 2) {
-      start();
-			clearInterval(interval);
-		} else {
-			start();
-		}
+		// if (nodes.length <= 2) {
+  //     start();
+		// 	clearInterval(interval);
+		// } else {
+		// 	start();
+		// }
 
 //	}, 1300);
 })
 
-function start() {
-  //link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; }); 
-  link = link.data(edges);
-  link.enter()
-    .insert("svg:path", ".node")
-    .attr("class", "link");
-    //.attr("id", function(d) { return "linknum" + d.linknum; });
-  link.exit()
-    .remove();
+// function start() {
+//   //link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; }); 
+//   link = link.data(edges);
+//   link.enter()
+//     .insert("svg:path", ".node")
+//     .attr("class", "link");
+//     //.attr("id", function(d) { return "linknum" + d.linknum; });
+//   link.exit()
+//     .remove();
 
-  //node = node.data(force.nodes(), function(d) { return d.id; });
-  node = node.data(nodes);
-  node.enter()
-    .append("circle")
-    .attr("class", "node")
-    //.attr("class", function(d) { return "node " + d.id; })
-    .attr("r", 8)
-    .call(force.drag);
-  node.exit().remove();
+//   //node = node.data(force.nodes(), function(d) { return d.id; });
+//   node = node.data(nodes);
+//   node.enter()
+//     .append("circle")
+//     .attr("class", "node")
+//     //.attr("class", function(d) { return "node " + d.id; })
+//     .attr("r", 8)
+//     .call(force.drag);
+//   node.exit().remove();
 
-  force.start();
-}
+//   force.start();
+// }
 
 function tick() { 
-  link.attr("id", function(d) { return "linknum" + d.linknum; })
+  link
+    // .attr("id", function(d) { return "linknum" + d.linknum; })
     .attr("d", function(d) {
-    var dx = d.target.x - d.source.x,
-        dy = d.target.y - d.source.y,
-        //dr = 150/Math.sqrt(Math.ceil(d.linknum/2));  //linknum is defined above
-        dr = Math.sqrt(dx*dx + dy*dy);
+      var dx = d.target.x - d.source.x,
+          dy = d.target.y - d.source.y,
+          //dr = 150/Math.sqrt(Math.ceil(d.linknum/2));  //linknum is defined above
+          dr = Math.sqrt(dx*dx + dy*dy);
 
-    // var sweep_flag = 0;
-    // if (d.linknum % 2 === 0) {
-    //   sweep_flag = 1;
-    // }
-    
-    // var path_string = "M" + d.source.x + "," + d.source.y + " A" + dr + "," + 
-    //     dr + ",0,0," + sweep_flag + "," + d.target.x + "," + d.target.y;
+      // var sweep_flag = 0;
+      // if (d.linknum % 2 === 0) {
+      //   sweep_flag = 1;
+      // }
+      
+      // var path_string = "M" + d.source.x + "," + d.source.y + " A" + dr + "," + 
+      //     dr + ",0,0," + sweep_flag + "," + d.target.x + "," + d.target.y;
 
-    var flip = 1 * d.linknum/2;
-    if (d.linknum % 2 != 0) {
-      flip = -1 * (d.linknum - 1) /2
-    }
-    var control_x = dx/2 - dy/5 * flip,
-        control_y = dy/2 + dx/5 * flip;
+      var flip = 1 * d.linknum/2;
+      if (d.linknum % 2 != 0) {
+        flip = -1 * (d.linknum - 1) /2
+      }
+      var control_x = dx/2 - dy/5 * flip,
+          control_y = dy/2 + dx/5 * flip;
 
-    var path_string = "M " + d.source.x + ", " + d.source.y + " q " + 
-        control_x + ", " + control_y + ", " + dx + ", " + dy;
+      var path_string = "M " + d.source.x + ", " + d.source.y + " q " + 
+          control_x + ", " + control_y + ", " + dx + ", " + dy;
 
-    return  path_string;
-  });
+      return  path_string;
+    });
 
   node.attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; });
 }
 
-function sort_links(links) {               
-  links.sort(function(a,b) {
-    if (a.source.id > b.source.id) { return 1; }
-    else if (a.source.id < b.source.id) { return -1; }
-    else {
-      if (a.target.id > b.target.id) { return 1; }
-      if (a.target.id < b.target.id) { return -1; }
-      else { return 0; }
-    }
-  });
+function tick2() {
+  // console.log("Hello! I'm ticking!");
+  // console.log(link);
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+  node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
 }
 
-function set_linknum(links) {
-  for (var i = 1; i < links.length; i++) {
-    if (links[i].source.id == links[i-1].source.id &&
-        links[i].target.id == links[i-1].target.id) {
-            links[i].linknum = links[i-1].linknum + 1;
-        }
-    else {links[i].linknum = 1;};
-  };
-}
+// function sort_links(links) {               
+//   links.sort(function(a,b) {
+//     if (a.source.id > b.source.id) { return 1; }
+//     else if (a.source.id < b.source.id) { return -1; }
+//     else {
+//       if (a.target.id > b.target.id) { return 1; }
+//       if (a.target.id < b.target.id) { return -1; }
+//       else { return 0; }
+//     }
+//   });
+// }
 
-function find_and_replace(edges, object, replacement) {
+// function set_linknum(links) {
+//   for (var i = 1; i < links.length; i++) {
+//     if (links[i].source.id == links[i-1].source.id &&
+//         links[i].target.id == links[i-1].target.id) {
+//             links[i].linknum = links[i-1].linknum + 1;
+//         }
+//     else {links[i].linknum = 1;};
+//   };
+// }
 
-  for (var i = 0; i < edges.length; i++) {
-    if (edges[i].source.index == object.index) {
-      edges[i].source = replacement;
-    } else if (edges[i].target.index == object.index) {
-      edges[i].target = replacement;
-    }
+// function find_and_replace(edges, object, replacement) {
 
-    if (edges[i].target.index > edges[i].source.index) {
-      var temp = edges[i].source;
-      edges[i].source = edges[i].target;
-      edges[i].target = temp;
-    }
+//   for (var i = 0; i < edges.length; i++) {
+//     if (edges[i].source.index == object.index) {
+//       edges[i].source = replacement;
+//     } else if (edges[i].target.index == object.index) {
+//       edges[i].target = replacement;
+//     }
 
-  }
-  return edges;
-}
+//     if (edges[i].target.index > edges[i].source.index) {
+//       var temp = edges[i].source;
+//       edges[i].source = edges[i].target;
+//       edges[i].target = temp;
+//     }
 
-function remove_self_loops(edges) {
+//   }
+//   return edges;
+// }
+
+// function remove_self_loops(edges) {
   
-  for (var i = edges.length - 1; i >= 0; i--) {
-    if (edges[i].source.index == edges[i].target.index) {
-      edges.splice(i,1);
-    }
-  }
-  return edges;
-}
+//   for (var i = edges.length - 1; i >= 0; i--) {
+//     if (edges[i].source.index == edges[i].target.index) {
+//       edges.splice(i,1);
+//     }
+//   }
+//   return edges;
+// }
 
 </script>
 </body>
